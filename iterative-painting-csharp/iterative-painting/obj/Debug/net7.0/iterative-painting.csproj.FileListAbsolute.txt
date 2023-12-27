@@ -1,0 +1,15 @@
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\bin\Debug\net7.0\iterative-painting.exe
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\bin\Debug\net7.0\iterative-painting.deps.json
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\bin\Debug\net7.0\iterative-painting.runtimeconfig.json
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\bin\Debug\net7.0\iterative-painting.dll
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\bin\Debug\net7.0\iterative-painting.pdb
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\iterative-painting.csproj.AssemblyReference.cache
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\iterative-painting.GeneratedMSBuildEditorConfig.editorconfig
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\iterative-painting.AssemblyInfoInputs.cache
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\iterative-painting.AssemblyInfo.cs
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\iterative-painting.csproj.CoreCompileInputs.cache
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\iterative-painting.dll
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\refint\iterative-painting.dll
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\iterative-painting.pdb
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\iterative-painting.genruntimeconfig.cache
+E:\workspace\kcg-iterative-painting\iterative-painting-csharp\iterative-painting\obj\Debug\net7.0\ref\iterative-painting.dll
