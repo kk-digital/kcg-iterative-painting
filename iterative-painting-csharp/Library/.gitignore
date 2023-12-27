@@ -11,7 +11,6 @@ __pycache__/
 # c# compiler
 /obj
 /bin
-.idea
 
 # Distribution / packaging
 .Python
