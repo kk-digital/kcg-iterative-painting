@@ -5,8 +5,8 @@ namespace Parallax;
 public class TilesetSpriteData
 {
     public UInt64 Uuid { get; set; }
+    public UInt64 DataId { get; set; }
     public string StringId { get; set; }
-    public int DataId { get; set; }
     public Int64 SequenceNumber { get; set; }
     public SpriteType Type { get; set; }
     public SpriteSize Size { get; set; }

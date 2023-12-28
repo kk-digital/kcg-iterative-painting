@@ -7,12 +7,12 @@ namespace Parallax;
 public class WangTilesLoader
 {
     public List<ParallaxLoaderTileset> LoadedTilesets = new();
-    public Dictionary<int, ParallaxLoaderTileset> LoaderTilesetsDictionary = new();
+    public Dictionary<UInt64, ParallaxLoaderTileset> LoaderTilesetsDictionary = new();
 
     public void LoadWangTiles(int loadedTilesetId = Constants.AllTilesets, int sequencenumber = Constants.LatestSequenceNumber)
     {
         LoadedTilesets = new List<ParallaxLoaderTileset>();
-        LoaderTilesetsDictionary = new Dictionary<int, ParallaxLoaderTileset>();
+        LoaderTilesetsDictionary = new Dictionary<UInt64, ParallaxLoaderTileset>();
         
         // The files in the folder look like this
         // asset-cache/tilesets/000/s0001/tileset.json
