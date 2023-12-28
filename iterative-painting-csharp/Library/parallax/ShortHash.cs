@@ -11,18 +11,25 @@ public class ShortHash
 {
     private const string ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     private const int HASH_LENGTH = 11;
+    private const UInt64 INVALID_ID = 0UL;
     
     public static UInt64 GenerateUUID()
     {
-        // Get current Unix time (32-bit)
-        int unixTime32Bit = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() & 0xFFFFFFFF);
+        UInt64 uuid = INVALID_ID;
         
-        // Get random number
-        int random32Bit = (int)Mt19937.genrand_int32();
-        
-        // Combine random number & time into a 64-bit integer
-        UInt64 uuid = ((UInt64)unixTime32Bit & 0xFFFFFFFFUL) | ((UInt64)random32Bit << 32);
-        
+        // Make sure to generate a valid UUID
+        while (uuid == INVALID_ID)
+        {
+            // Get current Unix time (32-bit)
+            int unixTime32Bit = (int)(DateTimeOffset.UtcNow.ToUnixTimeSeconds() & 0xFFFFFFFF);
+
+            // Get random number
+            int random32Bit = (int)Mt19937.genrand_int32();
+
+            // Combine random number & time into a 64-bit integer
+            uuid = ((UInt64)unixTime32Bit & 0xFFFFFFFFUL) | ((UInt64)random32Bit << 32);
+        }
+
         return uuid;
     }
 
