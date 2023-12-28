@@ -9,7 +9,7 @@ namespace Parallax;
 public class WangTilesUtility
 {
     
-    public static string GetStringFromVersionNumber(int version)
+    public static string GetStringFromVersionNumber(Int64 version)
     {
         string versionString = version.ToString().PadLeft(4, '0');
 
@@ -150,12 +150,12 @@ public class WangTilesUtility
     // tileset/s0000/sprite_sheets/[one .png per spritesheet]
     // tileset/s0000/sprite_sheets/[one .json file per spritesheet]
 
-    public static string GetDataPath(int version, int tilesetId, DataType dataType, int id, KcgData.FileType fileType)
+    public static string GetDataPath(Int64 version, string tilesetStringId, DataType dataType, string stringId, KcgData.FileType fileType)
     {
         string dataTypeFolderString = GetFolderStringFromDataType(dataType);
         string versionString = GetStringFromVersionNumber(version);
-        string dataIdString = GetStringFromDataId(id);
-        string tilesetIdString = GetStringFromDataId(tilesetId);
+        string dataIdString = stringId;
+        string tilesetIdString = tilesetStringId;
         string fileTypeString = GetStringFromFileType(fileType);
         string dataTypeString = GetStringFromDataType(dataType);
         

@@ -1,3 +1,5 @@
+using Enums;
+using KEngine;
 using Utility;
 
 namespace Parallax;
@@ -367,5 +369,593 @@ public class ParallaxManager
         TilesetVerticalEdgesDictionary.Add(uuid, index);
 
         return edge;
+    }
+
+    public void Save(UInt64 tilesetId)
+    {
+         TilesetData tilesetData = GetTilesetData(tilesetId);
+
+         if (tilesetData == null)
+         {
+             return;
+         }
+
+         TilesetInformation tilesetInformation = GetTileset(tilesetData.TilesetUuid);
+
+         if (tilesetInformation == null)
+         {
+             return;
+         }
+         
+        TilesetSpriteSheetReader tilesetSpriteSheetReader = new TilesetSpriteSheetReader();
+        tilesetSpriteSheetReader.InitStage1(this);
+        tilesetSpriteSheetReader.InitStage2();
+        
+        WangTilesLoader wangTilesLoader = new WangTilesLoader();
+        wangTilesLoader.LoadWangTiles(tilesetId, tilesetData.SequenceNumber);
+
+        List<TilesetSpriteData> oldSprites = new List<TilesetSpriteData>();
+        if (wangTilesLoader.LoaderTilesetsDictionary.ContainsKey(tilesetId))
+        {
+            WangTilesLoaderTileset oldTileset = wangTilesLoader.LoaderTilesetsDictionary[tilesetId];
+
+            oldSprites = oldTileset.TilesetSpriteDatas;
+            
+            foreach(TilesetSpriteSheetData spriteSheet in  oldTileset.TilesetSpriteSheetDatas)
+            {
+                tilesetSpriteSheetReader.ReadSpriteSheet(tilesetId, spriteSheet.Id);
+            }
+        }
+
+        const int spriteSheetMaxSpritesPerColumn = TilesetSpriteSheetBuilder.SpriteSheetWidthInSprites;
+        const int spriteSheetMaxSpritesPerRow = TilesetSpriteSheetBuilder.SpriteSheetHeightInSprites;
+        
+        // Each time we inserted a sprite
+        // We iterate over all the sprites 
+        // And order them by type
+        // Corners, horizontal edges, vertical edges, and then tiles
+        List <TilesetSpriteData> sprites = tilesetData.GetSprites();
+
+        List<TilesetSpriteData> cornerSprites = new List<TilesetSpriteData>();
+        List<TilesetSpriteData> edgeHorizontalSprites = new List<TilesetSpriteData>();
+        List<TilesetSpriteData> edgeVerticalSprites = new List<TilesetSpriteData>();
+        List<TilesetSpriteData> tileSprites = new List<TilesetSpriteData>();
+
+        foreach (TilesetSpriteData spriteData in sprites)
+        {
+            switch (spriteData.Type)
+            {
+                case SpriteType.CornerSprite:
+                {
+                    cornerSprites.Add(spriteData);
+                    break;
+                }
+                case SpriteType.EdgeHorizontalSprite:
+                {
+                    edgeHorizontalSprites.Add(spriteData);
+                    break;
+                }
+                case SpriteType.EdgeVerticalSprite:
+                {
+                    edgeVerticalSprites.Add(spriteData);
+                    break;
+                }
+                case SpriteType.TileCenterSprite:
+                {
+                    tileSprites.Add(spriteData);
+                    break;
+                }
+            }
+        }
+        
+        // Foreach corner/edge/tile
+        // find a spot on the sprite sheet png
+        // The sprite sheet is a giant table of sprites
+        // (column, row) starts from top left
+        
+        int spriteSheetIndex = 0;
+        int spriteIndex = 0;
+        int offsetX = 0;
+        int offsetY = 0;
+        
+        foreach (TilesetSpriteData spriteData in cornerSprites)
+        {
+            int spriteRow = offsetY * Constants.SpritesheetTilesPerLine;
+            int spriteColumn = offsetX * Constants.SpriteSheetWidthInTiles;
+            
+            spriteData.SpriteSheetRow = spriteRow;
+            spriteData.SpriteSheetColumn = spriteColumn;
+            spriteData.SpriteSheetId = spriteSheetIndex;
+
+            spriteIndex++;
+            offsetX++;
+            
+            // If we have reached maximum column size
+            // Move to the next line
+            if (offsetX >= spriteSheetMaxSpritesPerColumn)
+            {
+                offsetX = 0;
+                offsetY++;
+                
+                // If we reached the maximum row count
+                // Move on to the next sprite sheet png
+                if (offsetY >= spriteSheetMaxSpritesPerRow)
+                {
+                    offsetY = 0;
+                    spriteSheetIndex++;
+                }
+            }
+        }
+
+        
+        foreach (TilesetSpriteData spriteData in edgeHorizontalSprites)
+        {
+            int spriteRow = offsetY * Constants.SpritesheetTilesPerLine;
+            int spriteColumn = offsetX * Constants.SpriteSheetWidthInTiles;
+            
+            spriteData.SpriteSheetRow = spriteRow;
+            spriteData.SpriteSheetColumn = spriteColumn;
+            spriteData.SpriteSheetId = spriteSheetIndex;
+
+            spriteIndex++;
+            offsetX++;
+            
+            // If we have reached maximum column size
+            // Move to the next line
+            if (offsetX >= spriteSheetMaxSpritesPerColumn)
+            {
+                offsetX = 0;
+                offsetY++;
+                
+                // If we reached the maximum row count
+                // Move on to the next sprite sheet png
+                if (offsetY >= spriteSheetMaxSpritesPerRow)
+                {
+                    offsetY = 0;
+                    spriteSheetIndex++;
+                }
+            }
+        }
+        
+        foreach (TilesetSpriteData spriteData in edgeVerticalSprites)
+        {
+            int spriteRow = offsetY * Constants.SpritesheetTilesPerLine;
+            int spriteColumn = offsetX * Constants.SpriteSheetWidthInTiles;
+            
+            spriteData.SpriteSheetRow = spriteRow;
+            spriteData.SpriteSheetColumn = spriteColumn;
+            spriteData.SpriteSheetId = spriteSheetIndex;
+
+            spriteIndex++;
+            offsetX++;
+            
+            // If we have reached maximum column size
+            // Move to the next line
+            if (offsetX >= spriteSheetMaxSpritesPerColumn)
+            {
+                offsetX = 0;
+                offsetY++;
+                
+                // If we reached the maximum row count
+                // Move on to the next sprite sheet png
+                if (offsetY >= spriteSheetMaxSpritesPerRow)
+                {
+                    offsetY = 0;
+                    spriteSheetIndex++;
+                }
+            }
+        }
+        
+        foreach (TilesetSpriteData spriteData in tileSprites)
+        {
+            int spriteRow = offsetY * Constants.SpritesheetTilesPerLine;
+            int spriteColumn = offsetX * Constants.SpriteSheetWidthInTiles;
+            
+            spriteData.SpriteSheetRow = spriteRow;
+            spriteData.SpriteSheetColumn = spriteColumn;
+            spriteData.SpriteSheetId = spriteSheetIndex;
+
+            spriteIndex++;
+            offsetX++;
+            
+            // If we have reached maximum column size
+            // Move to the next line
+            if (offsetX >= spriteSheetMaxSpritesPerColumn)
+            {
+                offsetX = 0;
+                offsetY++;
+                
+                // If we reached the maximum row count
+                // Move on to the next sprite sheet png
+                if (offsetY >= spriteSheetMaxSpritesPerRow)
+                {
+                    offsetY = 0;
+                    spriteSheetIndex++;
+                }
+            }
+        }
+
+        for (int spriteSheetId = 0; spriteSheetId <= spriteSheetIndex; spriteSheetId++)
+        {
+            TilesetSpriteSheetData spriteSheetData = tilesetData.sp(tilesetId, spriteSheetId);
+
+            if (spriteSheetData == null)
+            {
+                spriteSheetData = new TilesetSpriteSheetData
+                {
+                    Id = spriteSheetId,
+                    SequenceNumber = 0,
+                    StringId = $"sprite_sheet_{spriteSheetId}",
+                    Description = ""
+                };
+                AddSpriteSheet(spriteSheetData);
+            }
+
+            string pngfilePath = WangTilesUtility.GetDataPath(tilesetData.SequenceNumber, CurrentTilesetId,
+                DataType.SpriteSheetData, spriteSheetId, KcgData.FileType.Png);
+
+            spriteSheetData.Filepath = pngfilePath;
+            spriteSheetData.Width = spriteSheetMaxSpritesPerColumn * Constants.SpriteSheetWidthInTiles;
+            spriteSheetData.Height = spriteSheetMaxSpritesPerRow * Constants.SpritesheetTilesPerLine;
+        }
+
+
+        
+        
+
+
+
+        TilesetManifest tilesetManifest = new TilesetManifest();
+        tilesetManifest.Files = new List<TilesetManifestItem>();
+
+        int maxSequenceNumber = 0;
+        
+        string tilesetIdString = WangTilesUtility.GetStringFromDataId(tilesetId);
+        string path = $"{Constants.CacheFolderName}/{Constants.TilesetsFolderName}/{tilesetIdString}";
+        if (!FileUtils.DirectoryExistsFull(path))
+        {
+            FileUtils.CreateDirectoryFull(path);
+        }
+        
+        List <TilesetManifest> tilesetVersions = WangTilesUtility.ListVersions(tilesetId);
+        foreach (var tileset in tilesetVersions)
+        {
+            maxSequenceNumber = Math.Max(tileset.SequenceNumber, maxSequenceNumber);
+        }
+        
+        // Allways increment the version anytime we save
+        tilesetData.SequenceNumber = maxSequenceNumber + 1;
+
+        tilesetManifest.SequenceNumber = tilesetData.SequenceNumber;
+        tilesetManifest.SequenceNumberString = sequenceNumberString;
+        
+        for(int cornerIndex = 0; cornerIndex < tilesetData.TilesetCorners.Count; cornerIndex++)
+        {
+            UInt64 cornerUuid = tilesetData.TilesetCorners[cornerIndex];
+            
+            TilesetCorner corner = GetCorner(cornerUuid);
+            string filePath = WangTilesUtility.GetDataPath(tilesetInformation.SequenceNumber, tilesetInformation.StringId, DataType.Corner,
+                corner.StringId, KcgData.FileType.Json);
+            
+            // Encode to json
+            // Make sure file directory exists
+            string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
+            if (!FileUtils.DirectoryExistsFull(directory))
+            {
+                FileUtils.CreateDirectoryFull(directory);
+            }
+            TilesetDataEncoder.Encode(filePath, corner);
+        
+            // Check if file was created successfully
+            if (!File.Exists(filePath))
+            {
+                // Panic, error, print some logs
+                KLog.LogDebug($"creation of the file {filePath} was not successful");
+                return;
+            }
+        
+            // Compute file size
+            FileInfo fileInfo = new FileInfo(filePath);
+            long fileSizeInBytes = fileInfo.Length;
+        
+            // Compute file hash
+            string hash256 = WangTilesUtility.ComputeSHA256(filePath);
+
+            // Update the manifest
+            TilesetManifestItem cornerFile = new TilesetManifestItem
+            {
+                Filepath = filePath,
+                DataType = DataType.Corner,
+                FileSize = (int)fileSizeInBytes,
+                HashSha256 = hash256,
+                SequenceNumber = corner.SequenceNumber
+            };
+            
+            // Add the new corner to the tileset manifest 
+            tilesetManifest.Files.Add(cornerFile);
+        }
+        
+        foreach (var edgeVerticalUuid in tilesetData.TilesetVerticalEdges)
+        {
+            TilesetEdgeVertical edge = GetEdgeVertical(edgeVerticalUuid);
+            
+            string filePath = WangTilesUtility.GetDataPath(tilesetInformation.SequenceNumber,
+                tilesetInformation.StringId, DataType.VerticalEdge, edge.StringId, KcgData.FileType.Json);
+            // Encode to json
+            // Make sure file directory exists
+            string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
+            if (!FileUtils.DirectoryExistsFull(directory))
+            {
+                FileUtils.CreateDirectoryFull(directory);
+            }
+            TilesetDataEncoder.Encode(filePath, edge);
+        
+            // Check if file was created successfully
+            if (!File.Exists(filePath))
+            {
+                // Panic, error, print some logs
+                KLog.LogDebug($"creation of the file {filePath} was not successful");
+                return;
+            }
+        
+            // Compute file size
+            FileInfo fileInfo = new FileInfo(filePath);
+            long fileSizeInBytes = fileInfo.Length;
+        
+            // Compute file hash
+            string hash256 = WangTilesUtility.ComputeSHA256(filePath);
+
+            // Update the manifest
+            TilesetManifestItem edgeVerticalFile = new TilesetManifestItem
+            {
+                Filepath = filePath,
+                DataType = DataType.VerticalEdge,
+                FileSize = (int)fileSizeInBytes,
+                HashSha256 = hash256,
+                SequenceNumber = edge.SequenceNumber
+            };
+            
+            // Add the new vertical edge to the tileset manifest 
+            tilesetManifest.Files.Add(edgeVerticalFile);
+        }
+        
+        foreach (var edgeHorizontalUuid in tilesetData.TilesetHorizontalEdges)
+        {
+            TilesetEdgeHorizontal edge = GetEdgeHorizontal(edgeHorizontalUuid);
+            
+            string filePath = WangTilesUtility.GetDataPath(tilesetInformation.SequenceNumber, 
+                tilesetInformation.StringId, DataType.HorizontalEdge, edge.StringId, KcgData.FileType.Json);
+
+            // Encode to json
+            // Make sure file directory exists
+            string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
+            if (!FileUtils.DirectoryExistsFull(directory))
+            {
+                FileUtils.CreateDirectoryFull(directory);
+            }
+            TilesetDataEncoder.Encode(filePath, edge);
+        
+            // Check if file was created successfully
+            if (!File.Exists(filePath))
+            {
+                // Panic, error, print some logs
+                KLog.LogDebug($"creation of the file {filePath} was not successful");
+                return;
+            }
+        
+            // Compute file size
+            FileInfo fileInfo = new FileInfo(filePath);
+            long fileSizeInBytes = fileInfo.Length;
+        
+            // Compute file hash
+            string hash256 = WangTilesUtility.ComputeSHA256(filePath);
+
+            // Update the manifest
+            TilesetManifestItem edgeHorizontalFile = new TilesetManifestItem
+            {
+                Filepath = filePath,
+                DataType = DataType.HorizontalEdge,
+                FileSize = (int)fileSizeInBytes,
+                HashSha256 = hash256,
+                SequenceNumber = edge.SequenceNumber
+            };
+            
+            // Add the new vertical edge to the tileset manifest 
+            tilesetManifest.Files.Add(edgeHorizontalFile);
+        }
+        
+        foreach (var tileUuid in tilesetData.TilesetTiles)
+        {
+            TilesetTileCenter tileCenter = GetTileCenter(tileUuid);
+            
+            string filePath = WangTilesUtility.GetDataPath(tilesetInformation.SequenceNumber, tilesetInformation.StringId,
+                DataType.Tile, tileCenter.StringId, KcgData.FileType.Json);
+            // Encode to json
+            // Make sure file directory exists
+            string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
+            if (!FileUtils.DirectoryExistsFull(directory))
+            {
+                FileUtils.CreateDirectoryFull(directory);
+            }
+            TilesetDataEncoder.Encode(filePath, tileCenter);
+        
+            // Check if file was created successfully
+            if (!File.Exists(filePath))
+            {
+                // Panic, error, print some logs
+                KLog.LogDebug($"creation of the file {filePath} was not successful");
+                return;
+            }
+        
+            // Compute file size
+            FileInfo fileInfo = new FileInfo(filePath);
+            long fileSizeInBytes = fileInfo.Length;
+        
+            // Compute file hash
+            string hash256 = WangTilesUtility.ComputeSHA256(filePath);
+
+            // Update the manifest
+            TilesetManifestItem tileFile = new TilesetManifestItem
+            {
+                Filepath = filePath,
+                DataType = DataType.Tile,
+                FileSize = (int)fileSizeInBytes,
+                HashSha256 = hash256,
+                SequenceNumber = tileCenter.SequenceNumber
+            };
+            
+            // Add the new vertical edge to the tileset manifest 
+            tilesetManifest.Files.Add(tileFile);
+        }
+
+        foreach (var spriteSheetUuid in tilesetData.TilesetSpriteSheetDatas)
+        {
+            TilesetSpriteSheetData spriteSheet = GetSpriteSheet(spriteSheetUuid);
+            
+            string pngfilePath = WangTilesUtility.GetDataPath(tilesetInformation.SequenceNumber, tilesetInformation.StringId,
+                DataType.SpriteSheetData, spriteSheet.StringId, KcgData.FileType.Png);
+            string filePath = WangTilesUtility.GetDataPath(tilesetInformation.SequenceNumber, tilesetInformation.StringId,
+                DataType.SpriteSheetData, spriteSheet.StringId, KcgData.FileType.Json);
+            
+            // Encode to json
+            // Make sure file directory exists
+            string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
+            if (!FileUtils.DirectoryExistsFull(directory))
+            {
+                FileUtils.CreateDirectoryFull(directory);
+            }
+            
+            sprites = tilesetData.GetSprites(spriteSheet.Value.Id);
+            
+            TilesetSpriteSheetBuilder.MakePng(tilesetData.Tileset.Id, spriteSheet.Value.Id, pngfilePath, oldSprites, sprites,
+                DefaultGeometrySpriteSheet, DefaultMonoSpaceCharactersSpriteSheet,
+                tilesetSpriteSheetReader,
+                this);
+            
+            spriteSheet.Value.Filepath = pngfilePath;
+            TilesetDataEncoder.Encode(filePath, spriteSheet.Value);
+
+            // Check if file was created successfully
+            if (!File.Exists(filePath))
+            {
+                // Panic, error, print some logs
+                KLog.LogDebug($"creation of the file {filePath} was not successful");
+                return;
+            }
+
+            // Compute file size
+            FileInfo fileInfo = new FileInfo(filePath);
+            long fileSizeInBytes = fileInfo.Length;
+
+            // Compute file hash
+            string hash256 = WangTilesUtility.ComputeSHA256(filePath);
+
+            // Update the manifest
+            TilesetManifestItem spriteSheetfile = new TilesetManifestItem
+            {
+                Filepath = filePath,
+                DataType = DataType.SpriteSheetData,
+                FileSize = (int)fileSizeInBytes,
+                HashSha256 = hash256,
+                SequenceNumber = 0
+            };
+
+            // Add the new vertical edge to the tileset manifest 
+            tilesetManifest.Files.Add(spriteSheetfile);
+        }
+
+        foreach (var spriteUuid in tilesetData.TilesetSpriteDatas)
+        {
+            TilesetSpriteData sprite = GetSprite(spriteUuid);
+            
+            string filePath = WangTilesUtility.GetDataPath(tilesetInformation.SequenceNumber,
+                tilesetInformation.StringId, DataType.SpriteData, sprite.StringId, KcgData.FileType.Json);
+            // Encode to json
+            // Make sure file directory exists
+            string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
+            if (!FileUtils.DirectoryExistsFull(directory))
+            {
+                FileUtils.CreateDirectoryFull(directory);
+            }
+            TilesetDataEncoder.Encode(filePath, sprite);
+        
+            // Check if file was created successfully
+            if (!File.Exists(filePath))
+            {
+                // Panic, error, print some logs
+                KLog.LogDebug($"creation of the file {filePath} was not successful");
+                return;
+            }
+        
+            // Compute file size
+            FileInfo fileInfo = new FileInfo(filePath);
+            long fileSizeInBytes = fileInfo.Length;
+        
+            // Compute file hash
+            string hash256 = WangTilesUtility.ComputeSHA256(filePath);
+
+            // Update the manifest
+            TilesetManifestItem spriteFile = new TilesetManifestItem
+            {
+                Filepath = filePath,
+                DataType = DataType.SpriteData,
+                FileSize = (int)fileSizeInBytes,
+                HashSha256 = hash256,
+                SequenceNumber = 0
+            };
+            
+            // Add the new vertical edge to the tileset manifest 
+            tilesetManifest.Files.Add(spriteFile);
+        }
+
+        {
+            Tileset tileset = new Tileset
+            {
+                Id = tilesetId,
+                StringId = tilesetData.Tileset.StringId,
+                SequenceNumber = 0,
+                Description = ""
+            };
+
+            string filePath = WangTilesUtility.GetTilesetPath(tilesetData.SequenceNumber, tilesetId);
+
+            string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
+            if (!FileUtils.DirectoryExistsFull(directory))
+            {
+                FileUtils.CreateDirectoryFull(directory);
+            }
+
+            TilesetDataEncoder.Encode(filePath, tileset);
+        }
+
+        // Save the tileset manifest
+        SaveTilesetManifest(CurrentTilesetId, tilesetManifest);
+    }
+    
+    public void SaveTilesetManifest(int tilesetId, TilesetManifest tilesetManifest)
+    {
+        TilesetData tilesetData = GetTilesetData(CurrentTilesetId);
+
+        if (tilesetData == null)
+        {
+            // fail
+            return;
+        }
+        // Get today's date
+        DateTime today = DateTime.Now;
+
+        // Format the date as yyyy-MM-dd HH:mm:ss
+        string todayString = today.ToString("yyyy-MM-dd HH:mm:ss");
+
+        tilesetManifest.CreationDate = todayString;
+        
+        string filePath = WangTilesUtility.GetManifestPath(tilesetData.SequenceNumber, tilesetId);
+        // Make sure file directory exists
+        string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
+        if (!FileUtils.DirectoryExistsFull(directory))
+        {
+            FileUtils.CreateDirectoryFull(directory);
+        }
+        TilesetDataEncoder.Encode(filePath, tilesetManifest);   
     }
 }

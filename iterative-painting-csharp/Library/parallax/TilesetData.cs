@@ -3,7 +3,7 @@ namespace Parallax;
 public class TilesetData
 {
     // Object list
-    public UInt64 Tileset;
+    public UInt64 TilesetUuid;
     public List<UInt64> TilesetCorners = new();
     public List<UInt64> TilesetHorizontalEdges = new();
     public List<UInt64> TilesetVerticalEdges = new();
