@@ -1,9 +1,9 @@
-namespace WangTiles;
+namespace Parallax;
 
 
 public class TilesetCorner
 {
-    public int Id { get; set; }
+    public UInt64 Uuid { get; set; }
     public string StringId { get; set; }
     public Int64 SequenceNumber { get; set; }
     public int SpriteId { get; set; }

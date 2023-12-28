@@ -4,7 +4,7 @@ using KEngine;
 using File = System.IO.File;
 using SearchOption = KEngine.SearchOption;
 
-namespace WangTiles;
+namespace Parallax;
 
 public class WangTilesUtility
 {

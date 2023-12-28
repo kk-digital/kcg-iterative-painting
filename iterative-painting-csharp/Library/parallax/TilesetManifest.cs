@@ -1,6 +1,6 @@
 using Enums;
 
-namespace WangTiles;
+namespace Parallax;
 
 
 //A manifest file of all manifest files

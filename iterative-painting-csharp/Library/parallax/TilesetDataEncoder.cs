@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace WangTiles
+namespace Parallax
 {
     public class TilesetDataEncoder
     {

@@ -1,10 +1,10 @@
 using Enums;
 
-namespace WangTiles;
+namespace Parallax;
 
 public class TilesetSpriteData
 {
-    public int Id { get; set; }
+    public UInt64 Uuid { get; set; }
     public string StringId { get; set; }
     public int DataId { get; set; }
     public Int64 SequenceNumber { get; set; }

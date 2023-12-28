@@ -2,17 +2,17 @@ using Enums;
 using KEngine;
 using Utility;
 
-namespace WangTiles;
+namespace Parallax;
 
 public class WangTilesLoader
 {
-    public List<WangTilesLoaderTileset> LoadedTilesets = new();
-    public Dictionary<int, WangTilesLoaderTileset> LoaderTilesetsDictionary = new();
+    public List<ParallaxLoaderTileset> LoadedTilesets = new();
+    public Dictionary<int, ParallaxLoaderTileset> LoaderTilesetsDictionary = new();
 
     public void LoadWangTiles(int loadedTilesetId = Constants.AllTilesets, int sequencenumber = Constants.LatestSequenceNumber)
     {
-        LoadedTilesets = new List<WangTilesLoaderTileset>();
-        LoaderTilesetsDictionary = new Dictionary<int, WangTilesLoaderTileset>();
+        LoadedTilesets = new List<ParallaxLoaderTileset>();
+        LoaderTilesetsDictionary = new Dictionary<int, ParallaxLoaderTileset>();
         
         // The files in the folder look like this
         // asset-cache/tilesets/000/s0001/tileset.json
@@ -115,11 +115,11 @@ public class WangTilesLoader
             string tilesetPath = $"{chosenTilesetPath}/{tilesetFileName}";
             string manifestPath = $"{chosenTilesetPath}/{manifestFileName}";
 
-            WangTilesLoaderTileset tilesetLoader = new WangTilesLoaderTileset();
+            ParallaxLoaderTileset tilesetLoader = new ParallaxLoaderTileset();
             
             // decode tileset json
             byte[] tilesetBytes = FileUtils.ReadAllBytesFull(tilesetPath);
-            Tileset tileset = TilesetDataDecoder.Decode<Tileset>(tilesetBytes);
+            TilesetInformation tileset = TilesetDataDecoder.Decode<TilesetInformation>(tilesetBytes);
 
             // decode manifest json
             byte[] manifestBytes = FileUtils.ReadAllBytesFull(manifestPath);
@@ -133,18 +133,18 @@ public class WangTilesLoader
             tilesetLoader.Tileset = tileset;
             
             tilesetLoader.TilesetCorners = new List<TilesetCorner>();
-            tilesetLoader.TilesetHorizontalEdges = new List<TilesetHorizontalEdge>();
-            tilesetLoader.TilesetVerticalEdges = new List<TilesetVerticalEdge>();
-            tilesetLoader.TilesetTiles = new List<TilesetTile>();
+            tilesetLoader.TilesetHorizontalEdges = new List<TilesetEdgeHorizontal>();
+            tilesetLoader.TilesetVerticalEdges = new List<TilesetEdgeVertical>();
+            tilesetLoader.TilesetTiles = new List<TilesetTileCenter>();
             tilesetLoader.TilesetSpriteSheetDatas = new List<TilesetSpriteSheetData>();
             tilesetLoader.TilesetSpriteDatas = new List<TilesetSpriteData>();
             
-            tilesetLoader.TilesetCornersDictionary = new Dictionary<int, TilesetCorner>();
-            tilesetLoader.TilesetHorizontalEdgesDictionary = new Dictionary<int, TilesetHorizontalEdge>();
-            tilesetLoader.TilesetVerticalEdgesDictionary = new Dictionary<int, TilesetVerticalEdge>();
-            tilesetLoader.TilesetTilesDictionary = new Dictionary<int, TilesetTile>();
-            tilesetLoader.TilesetSpriteSheetDatasDictionary = new Dictionary<int, TilesetSpriteSheetData>();
-            tilesetLoader.TilesetSpriteDatasDictionary = new Dictionary<int, TilesetSpriteData>();
+            tilesetLoader.TilesetCornersDictionary = new Dictionary<UInt64, TilesetCorner>();
+            tilesetLoader.TilesetHorizontalEdgesDictionary = new Dictionary<UInt64, TilesetEdgeHorizontal>();
+            tilesetLoader.TilesetVerticalEdgesDictionary = new Dictionary<UInt64, TilesetEdgeVertical>();
+            tilesetLoader.TilesetTilesDictionary = new Dictionary<UInt64, TilesetTileCenter>();
+            tilesetLoader.TilesetSpriteSheetDatasDictionary = new Dictionary<UInt64, TilesetSpriteSheetData>();
+            tilesetLoader.TilesetSpriteDatasDictionary = new Dictionary<UInt64, TilesetSpriteData>();
             
             List<TilesetManifestItem> manifestItems = manifest.Files;
 
@@ -159,7 +159,7 @@ public class WangTilesLoader
                         TilesetCorner corner = TilesetDataDecoder.Decode<TilesetCorner>(bytes);
                         
                         tilesetLoader.TilesetCorners.Add(corner);
-                        tilesetLoader.TilesetCornersDictionary.Add(corner.Id, corner);
+                        tilesetLoader.TilesetCornersDictionary.Add(corner.Uuid, corner);
                         break;
                     }
                     case DataType.SpriteData:
@@ -169,37 +169,37 @@ public class WangTilesLoader
                         TilesetSpriteData sprite = TilesetDataDecoder.Decode<TilesetSpriteData>(bytes);
                         
                         tilesetLoader.TilesetSpriteDatas.Add(sprite);
-                        tilesetLoader.TilesetSpriteDatasDictionary.Add(sprite.Id, sprite);
+                        tilesetLoader.TilesetSpriteDatasDictionary.Add(sprite.Uuid, sprite);
                         break;
                     }
                     case DataType.HorizontalEdge:
                     {
                         // decode json
                         byte[] bytes = FileUtils.ReadAllBytesFull(item.Filepath);
-                        TilesetHorizontalEdge edge = TilesetDataDecoder.Decode<TilesetHorizontalEdge>(bytes);
+                        TilesetEdgeHorizontal edge = TilesetDataDecoder.Decode<TilesetEdgeHorizontal>(bytes);
                         
                         tilesetLoader.TilesetHorizontalEdges.Add(edge);
-                        tilesetLoader.TilesetHorizontalEdgesDictionary.Add(edge.Id, edge);
+                        tilesetLoader.TilesetHorizontalEdgesDictionary.Add(edge.Uuid, edge);
                         break;
                     }
                     case DataType.VerticalEdge:
                     {
                         // decode json
                         byte[] bytes = FileUtils.ReadAllBytesFull(item.Filepath);
-                        TilesetVerticalEdge edge = TilesetDataDecoder.Decode<TilesetVerticalEdge>(bytes);
+                        TilesetEdgeVertical edge = TilesetDataDecoder.Decode<TilesetEdgeVertical>(bytes);
                         
                         tilesetLoader.TilesetVerticalEdges.Add(edge);
-                        tilesetLoader.TilesetVerticalEdgesDictionary.Add(edge.Id, edge);
+                        tilesetLoader.TilesetVerticalEdgesDictionary.Add(edge.Uuid, edge);
                         break;
                     }
                     case DataType.Tile:
                     {
                         // decode json
                         byte[] bytes = FileUtils.ReadAllBytesFull(item.Filepath);
-                        TilesetTile tile = TilesetDataDecoder.Decode<TilesetTile>(bytes);
+                        TilesetTileCenter tile = TilesetDataDecoder.Decode<TilesetTileCenter>(bytes);
                         
                         tilesetLoader.TilesetTiles.Add(tile);
-                        tilesetLoader.TilesetTilesDictionary.Add(tile.Id, tile);
+                        tilesetLoader.TilesetTilesDictionary.Add(tile.Uuid, tile);
                         break;
                     }
                     case DataType.SpriteSheetData:
@@ -209,14 +209,14 @@ public class WangTilesLoader
                         TilesetSpriteSheetData spriteSheetData = TilesetDataDecoder.Decode<TilesetSpriteSheetData>(bytes);
                         
                         tilesetLoader.TilesetSpriteSheetDatas.Add(spriteSheetData);
-                        tilesetLoader.TilesetSpriteSheetDatasDictionary.Add(spriteSheetData.Id, spriteSheetData);
+                        tilesetLoader.TilesetSpriteSheetDatasDictionary.Add(spriteSheetData.Uuid, spriteSheetData);
                         break;
                     }
                 }
             }
             
             LoadedTilesets.Add(tilesetLoader);
-            LoaderTilesetsDictionary.Add(tilesetLoader.Tileset.Id, tilesetLoader);
+            LoaderTilesetsDictionary.Add(tilesetLoader.Tileset.Uuid, tilesetLoader);
         }
     }
     
@@ -239,26 +239,26 @@ public class WangTilesLoader
     }
 }
 
-public class WangTilesLoaderTileset
+public class ParallaxLoaderTileset
 {
     public int Version;
     
     public TilesetManifest Manifest;
 
-    public Tileset Tileset;
+    public TilesetInformation Tileset;
 
     public List<TilesetCorner> TilesetCorners;
-    public List<TilesetHorizontalEdge> TilesetHorizontalEdges;
-    public List<TilesetVerticalEdge> TilesetVerticalEdges;
-    public List<TilesetTile> TilesetTiles;
+    public List<TilesetEdgeHorizontal> TilesetHorizontalEdges;
+    public List<TilesetEdgeVertical> TilesetVerticalEdges;
+    public List<TilesetTileCenter> TilesetTiles;
     public List<TilesetSpriteData> TilesetSpriteDatas;
     public List<TilesetSpriteSheetData> TilesetSpriteSheetDatas;
     
-    public Dictionary<int, TilesetCorner> TilesetCornersDictionary;
-    public Dictionary<int, TilesetHorizontalEdge> TilesetHorizontalEdgesDictionary;
-    public Dictionary<int, TilesetVerticalEdge> TilesetVerticalEdgesDictionary;
-    public Dictionary<int, TilesetTile> TilesetTilesDictionary;
-    public Dictionary<int, TilesetSpriteData> TilesetSpriteDatasDictionary;
-    public Dictionary<int, TilesetSpriteSheetData> TilesetSpriteSheetDatasDictionary;
+    public Dictionary<UInt64, TilesetCorner> TilesetCornersDictionary;
+    public Dictionary<UInt64, TilesetEdgeHorizontal> TilesetHorizontalEdgesDictionary;
+    public Dictionary<UInt64, TilesetEdgeVertical> TilesetVerticalEdgesDictionary;
+    public Dictionary<UInt64, TilesetTileCenter> TilesetTilesDictionary;
+    public Dictionary<UInt64, TilesetSpriteData> TilesetSpriteDatasDictionary;
+    public Dictionary<UInt64, TilesetSpriteSheetData> TilesetSpriteSheetDatasDictionary;
 
 }

@@ -1,4 +1,4 @@
-namespace WangTiles;
+namespace Parallax;
 
 public class Constants
 {
