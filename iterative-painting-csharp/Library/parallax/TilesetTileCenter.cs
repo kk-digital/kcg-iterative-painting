@@ -15,16 +15,16 @@ public class TilesetTileCenter
     public Enums.TileGeometryAndRotation Geometry { get; set; }
     public Enums.PlanetTileMap.MapLayerType Layer { get; set; }
     
-    public int CornerNorthWest { get; set; }
-    public int CornerNorthEast { get; set; }
-    public int CornerSouthEast { get; set; }
-    public int CornerSouthWest { get; set; }
+    public UInt64 CornerNorthWest { get; set; }
+    public UInt64 CornerNorthEast { get; set; }
+    public UInt64 CornerSouthEast { get; set; }
+    public UInt64 CornerSouthWest { get; set; }
 
-    public int EdgeVerticalEast { get; set; }
-    public int EdgeVerticalWest { get; set; }
+    public UInt64 EdgeVerticalEast { get; set; }
+    public UInt64 EdgeVerticalWest { get; set; }
 
-    public int EdgeHorizontalNorth { get; set; }
-    public int EdgeHorizontalSouth { get; set; }
+    public UInt64 EdgeHorizontalNorth { get; set; }
+    public UInt64 EdgeHorizontalSouth { get; set; }
     
     public bool IsDeprecated { get; set; }
 }

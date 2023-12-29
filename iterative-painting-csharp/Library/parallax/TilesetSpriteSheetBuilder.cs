@@ -10,7 +10,7 @@ public class TilesetSpriteSheetBuilder
     public const int SpriteSheetWidthInSprites = 8;
     public const int SpriteSheetHeightInSprites = 8;
     
-    public int TilesetId;
+    public UInt64 TilesetUuid;
     public string Path;
     
     // Corner size in pixels
@@ -26,7 +26,7 @@ public class TilesetSpriteSheetBuilder
     public DefaultMonoSpaceCharactersSpriteSheet DefaultMonoSpaceCharactersSpriteSheet;
     public TilesetSpriteSheetReader TilesetSpriteSheetReader;
 
-    public Dictionary<int, TilesetSpriteData> OldSprites;
+    public Dictionary<UInt64, TilesetSpriteData> OldSprites;
     
     // Png builder that is used to create the png file
     public PngBuilder PngBuilder;
@@ -38,21 +38,27 @@ public class TilesetSpriteSheetBuilder
     public int WidthInPixels;
     public int HeightInPixels;
     
-    public static void MakePng(int tilesetId, int spriteSheetId, string path,
-        List<WangTiles.TilesetSpriteData> oldSprites,
-        List<WangTiles.TilesetSpriteData> sprites,
+    
+    // ------ Dependencies -------------
+    public ParallaxManager ParallaxManager;
+    public TilesetColorPaletteSystem TilesetColorPaletteSystem;
+    
+    public static void MakePng(UInt64 tilesetUuid, string path,
+        List<TilesetSpriteData> oldSprites,
+        List<TilesetSpriteData> sprites,
         DefaultGeometrySpriteSheet defaultGeometrySpriteSheet,
         DefaultMonoSpaceCharactersSpriteSheet defaultMonoSpaceCharactersSpriteSheet,
         TilesetSpriteSheetReader tilesetSpriteSheetReader,
-        TilesetEditorSystem tilesetEditorSystem)
+        ParallaxManager parallaxManager,
+        TilesetColorPaletteSystem tilesetColorPaletteSystem)
     {
         int spriteSheetWidthInTiles = Constants.SpriteSheetWidthInTiles * SpriteSheetWidthInSprites;
         int spriteSheetHeightInTiles = Constants.SpritesheetTilesPerLine * SpriteSheetHeightInSprites;
         
         TilesetSpriteSheetBuilder builder = new TilesetSpriteSheetBuilder(
             defaultGeometrySpriteSheet, defaultMonoSpaceCharactersSpriteSheet,
-            oldSprites, tilesetEditorSystem,
-            tilesetId, spriteSheetId, tilesetSpriteSheetReader, 
+            oldSprites, parallaxManager, tilesetColorPaletteSystem,
+            tilesetUuid, tilesetSpriteSheetReader, 
             path, 
             spriteSheetWidthInTiles, spriteSheetHeightInTiles);
         
@@ -87,14 +93,6 @@ public class TilesetSpriteSheetBuilder
                 }
             }
         }
-
-       /* int lineOffset = cornerSprites.Count;
-        builder.BlitLine(0, lineOffset * Constants.SpritesheetTilesPerLine * Constants.TileSize + Constants.TileSize * 0, Color.Black);
-        lineOffset += edgeHorizontalSprites.Count;
-        builder.BlitLine(0, lineOffset * Constants.SpritesheetTilesPerLine * Constants.TileSize + Constants.TileSize * 1, Color.Black);
-        lineOffset += edgeVerticalSprites.Count;
-        builder.BlitLine(0, lineOffset * Constants.SpritesheetTilesPerLine * Constants.TileSize + Constants.TileSize * 2, Color.Black);
-        */
        
         for (int spriteIndex = 0; spriteIndex < sprites.Count; spriteIndex++)
         {
@@ -133,11 +131,14 @@ public class TilesetSpriteSheetBuilder
     public TilesetSpriteSheetBuilder(DefaultGeometrySpriteSheet defaultGeometrySpriteSheet,
         DefaultMonoSpaceCharactersSpriteSheet defaultMonoSpaceCharactersSpriteSheet, 
         List<TilesetSpriteData> spriteList,
-        TilesetEditorSystem TilesetEditorSystem,
-        int tilesetId, int spriteSheetId, TilesetSpriteSheetReader spriteSheetReader,
+        ParallaxManager parallaxManager,
+        TilesetColorPaletteSystem tilesetColorPaletteSystem,
+        UInt64 tilesetUuid, TilesetSpriteSheetReader spriteSheetReader,
         string path, int widthInTiles, int heightInTiles, int size = 2, int tileSize = 32)
     {
-        TilesetId = tilesetId;
+        ParallaxManager = parallaxManager;
+        TilesetColorPaletteSystem = tilesetColorPaletteSystem;
+        TilesetUuid = tilesetUuid;
         Path = path;
         Size = size;
         TileSize = tileSize;
@@ -155,10 +156,10 @@ public class TilesetSpriteSheetBuilder
         
         
 
-        OldSprites = new Dictionary<int, TilesetSpriteData>();
+        OldSprites = new Dictionary<UInt64, TilesetSpriteData>();
         foreach (TilesetSpriteData sprite in spriteList)
         {
-            OldSprites.Add(sprite.Id, sprite);
+            OldSprites.Add(sprite.Uuid, sprite);
         }
         
         PngBuilder = PngBuilder.Create(WidthInPixels, HeightInPixels, true);
@@ -191,12 +192,12 @@ public class TilesetSpriteSheetBuilder
 
     public void BlitCornerSprite(TilesetSpriteData spriteData)
     {
-        TilesetCorner corner = EditorState.TilesetEditorSystem.GetCorner(TilesetId, spriteData.DataId);
+        TilesetCorner corner = ParallaxManager.GetCorner(spriteData.DataUuid);
 
         byte[] texturePixels = null;
-        if (OldSprites.ContainsKey(spriteData.Id))
+        if (OldSprites.ContainsKey(spriteData.Uuid))
         {
-            TilesetSpriteData oldSprite = OldSprites[spriteData.Id];
+            TilesetSpriteData oldSprite = OldSprites[spriteData.Uuid];
             
             texturePixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
         }
@@ -234,13 +235,13 @@ public class TilesetSpriteSheetBuilder
     
       public void BlitEdgeVerticalSprite(TilesetSpriteData spriteData)
     {
-        TilesetVerticalEdge verticalEdge = 
-            EditorState.TilesetEditorSystem.GetEdgeVertical(TilesetId, spriteData.DataId);
+        TilesetEdgeVertical verticalEdge = 
+            ParallaxManager.GetEdgeVertical(spriteData.DataUuid);
         
         byte[] texturePixels = null;
-        if (OldSprites.ContainsKey(spriteData.Id))
+        if (OldSprites.ContainsKey(spriteData.Uuid))
         {
-            TilesetSpriteData oldSprite = OldSprites[spriteData.Id];
+            TilesetSpriteData oldSprite = OldSprites[spriteData.Uuid];
             
             texturePixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
         }
@@ -278,13 +279,13 @@ public class TilesetSpriteSheetBuilder
     
     public void BlitEdgeHorizontalSprite(TilesetSpriteData spriteData)
     {
-        TilesetHorizontalEdge horizontalEdge = 
-            EditorState.TilesetEditorSystem.GetEdgeHorizontal(TilesetId, spriteData.DataId);
+        TilesetEdgeHorizontal horizontalEdge = 
+            ParallaxManager.GetEdgeHorizontal(spriteData.DataUuid);
         
         byte[] texturePixels = null;
-        if (OldSprites.ContainsKey(spriteData.Id))
+        if (OldSprites.ContainsKey(spriteData.Uuid))
         {
-            TilesetSpriteData oldSprite = OldSprites[spriteData.Id];
+            TilesetSpriteData oldSprite = OldSprites[spriteData.Uuid];
             
             texturePixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
         }
@@ -406,135 +407,130 @@ public class TilesetSpriteSheetBuilder
     
     public void BlitTileSprite(TilesetSpriteData spriteData)
     {
-        TilesetEditorSystem TilesetEditorSystem = EditorState.TilesetEditorSystem;
+        TilesetTileCenter tileCenter = ParallaxManager.GetTileCenter(spriteData.DataUuid);
         
-        TilesetTile tile = TilesetEditorSystem.GetTile(TilesetId, spriteData.DataId);
-        
-        TilesetCorner cornerNorthWest = EditorState.TilesetEditorSystem.GetCorner(TilesetId, tile.CornerNorthWest);
+        TilesetCorner cornerNorthWest = ParallaxManager.GetCorner(tileCenter.CornerNorthWest);
         TilesetSpriteData cornerNorthWestSprite = null;
         if (cornerNorthWest != null)
         {
             cornerNorthWestSprite =
-                TilesetEditorSystem.GetSprite(TilesetId, cornerNorthWest.SpriteId);
+                ParallaxManager.GetSprite(cornerNorthWest.SpriteUuid);
         }
 
-        TilesetCorner cornerNorthEast = EditorState.TilesetEditorSystem.GetCorner(TilesetId, tile.CornerNorthEast);
+        TilesetCorner cornerNorthEast = ParallaxManager.GetCorner(tileCenter.CornerNorthEast);
         TilesetSpriteData cornerNorthEastSprite = null;
         if (cornerNorthEast != null)
         {
-            cornerNorthEastSprite = TilesetEditorSystem.GetSprite(TilesetId, cornerNorthEast.SpriteId);
+            cornerNorthEastSprite = ParallaxManager.GetSprite(cornerNorthEast.SpriteUuid);
         }
 
-        TilesetCorner cornerSouthWest = EditorState.TilesetEditorSystem.GetCorner(TilesetId, tile.CornerSouthWest);
+        TilesetCorner cornerSouthWest = ParallaxManager.GetCorner(tileCenter.CornerSouthWest);
         TilesetSpriteData cornerSouthWestSprite = null;
         if (cornerSouthWest != null)
         {
-            cornerSouthWestSprite = TilesetEditorSystem.GetSprite(TilesetId, cornerSouthWest.SpriteId);
+            cornerSouthWestSprite = ParallaxManager.GetSprite(cornerSouthWest.SpriteUuid);
         }
 
-        TilesetCorner cornerSouthEast = EditorState.TilesetEditorSystem.GetCorner(TilesetId, tile.CornerSouthEast);
+        TilesetCorner cornerSouthEast = ParallaxManager.GetCorner(tileCenter.CornerSouthEast);
         TilesetSpriteData cornerSouthEastSprite = null;
         if (cornerSouthEast != null)
         {
-            cornerSouthEastSprite = TilesetEditorSystem.GetSprite(TilesetId, cornerSouthEast.SpriteId);
+            cornerSouthEastSprite = ParallaxManager.GetSprite(cornerSouthEast.SpriteUuid);
         }
 
-        TilesetHorizontalEdge edgeHorizontalNorth = 
-            EditorState.TilesetEditorSystem.GetEdgeHorizontal(TilesetId, tile.EdgeHorizontalNorth);
+        TilesetEdgeHorizontal edgeHorizontalNorth = 
+            ParallaxManager.GetEdgeHorizontal(tileCenter.EdgeHorizontalNorth);
         TilesetSpriteData edgeHorizontalNorthSprite = null;
         if (edgeHorizontalNorth != null)
         {
-            edgeHorizontalNorthSprite = TilesetEditorSystem.GetSprite(TilesetId,
-                edgeHorizontalNorth.SpriteId);
+            edgeHorizontalNorthSprite = ParallaxManager.GetSprite(edgeHorizontalNorth.SpriteUuid);
         }
 
-        TilesetHorizontalEdge edgeHorizontalSouth =
-            EditorState.TilesetEditorSystem.GetEdgeHorizontal(TilesetId, tile.EdgeHorizontalSouth);
+        TilesetEdgeHorizontal edgeHorizontalSouth =
+            ParallaxManager.GetEdgeHorizontal(tileCenter.EdgeHorizontalSouth);
         TilesetSpriteData edgeHorizontalSouthSprite = null;
         if (edgeHorizontalSouth != null)
         {
-            edgeHorizontalSouthSprite = TilesetEditorSystem.GetSprite(TilesetId,
-                edgeHorizontalSouth.SpriteId);
+            edgeHorizontalSouthSprite = ParallaxManager.GetSprite(edgeHorizontalSouth.SpriteUuid);
         }
 
 
 
-        TilesetVerticalEdge edgeVerticalWest =
-            EditorState.TilesetEditorSystem.GetEdgeVertical(TilesetId, tile.EdgeVerticalWest);
+        TilesetEdgeVertical edgeVerticalWest =
+            ParallaxManager.GetEdgeVertical(tileCenter.EdgeVerticalWest);
         TilesetSpriteData edgeVerticalWestSprite = null;
         if (edgeVerticalWest != null)
         {
-            edgeVerticalWestSprite = TilesetEditorSystem.GetSprite(TilesetId,
-                edgeVerticalWest.SpriteId);
+            edgeVerticalWestSprite = ParallaxManager.GetSprite(edgeVerticalWest.SpriteUuid);
         }
 
-        TilesetVerticalEdge edgeVerticalEast =
-            EditorState.TilesetEditorSystem.GetEdgeVertical(TilesetId, tile.EdgeVerticalEast);
+        TilesetEdgeVertical edgeVerticalEast =
+            ParallaxManager.GetEdgeVertical(tileCenter.EdgeVerticalEast);
         TilesetSpriteData edgeVerticalEastSprite = null;
         if (edgeVerticalEast != null)
         {
             edgeVerticalEastSprite =
-                TilesetEditorSystem.GetSprite(TilesetId, edgeVerticalEast.SpriteId);
+                ParallaxManager.GetSprite(edgeVerticalEast.SpriteUuid);
         }
         
         Color cornerNorthWestColor = Color.White;
         if (cornerNorthWest != null)
         {
-            cornerNorthWestColor = EditorState.TilesetColorPaletteSystem.GetCornerColor(cornerNorthWest.ColorId);
+            cornerNorthWestColor = TilesetColorPaletteSystem.GetCornerColor(cornerNorthWest.ColorId);
         }
 
         Color cornerNorthEastColor = Color.White;
         if (cornerNorthEast != null)
         {
-            cornerNorthEastColor = EditorState.TilesetColorPaletteSystem.GetCornerColor(cornerNorthEast.ColorId);
+            cornerNorthEastColor = TilesetColorPaletteSystem.GetCornerColor(cornerNorthEast.ColorId);
         }
 
         Color cornerSouthWestColor = Color.White;
         if (cornerSouthWest != null)
         {
-            cornerSouthWestColor = EditorState.TilesetColorPaletteSystem.GetCornerColor(cornerSouthWest.ColorId);
+            cornerSouthWestColor = TilesetColorPaletteSystem.GetCornerColor(cornerSouthWest.ColorId);
         }
 
         Color cornerSouthEastColor = Color.White;
         if (cornerSouthEast != null)
         {
-            cornerSouthEastColor = EditorState.TilesetColorPaletteSystem.GetCornerColor(cornerSouthEast.ColorId);
+            cornerSouthEastColor = TilesetColorPaletteSystem.GetCornerColor(cornerSouthEast.ColorId);
         }
         
         Color edgeVerticalEastColor = Color.White;
         if (edgeVerticalEast != null)
         {
             edgeVerticalEastColor =
-                EditorState.TilesetColorPaletteSystem.GetEdgeVerticalColor(edgeVerticalEast.ColorId);
+                TilesetColorPaletteSystem.GetEdgeVerticalColor(edgeVerticalEast.ColorId);
         }
 
         Color edgeVerticalWestColor = Color.White;
         if (edgeVerticalWest != null)
         {
             edgeVerticalWestColor =
-                EditorState.TilesetColorPaletteSystem.GetEdgeVerticalColor(edgeVerticalWest.ColorId);
+                TilesetColorPaletteSystem.GetEdgeVerticalColor(edgeVerticalWest.ColorId);
         }
 
         Color edgeHorizontalNorthColor = Color.White;
         if (edgeHorizontalNorth != null)
         {
             edgeHorizontalNorthColor =
-                EditorState.TilesetColorPaletteSystem.GetEdgeHorizontalColor(edgeHorizontalNorth.ColorId);
+                TilesetColorPaletteSystem.GetEdgeHorizontalColor(edgeHorizontalNorth.ColorId);
         }
 
         Color edgeHorizontalSouthColor = Color.White;
         if (edgeHorizontalSouth != null)
         {
             edgeHorizontalSouthColor =
-                EditorState.TilesetColorPaletteSystem.GetEdgeHorizontalColor(edgeHorizontalSouth.ColorId);
+                TilesetColorPaletteSystem.GetEdgeHorizontalColor(edgeHorizontalSouth.ColorId);
         }
 
         byte[] cornerNorthWestPixels = null;
         if (cornerNorthWestSprite != null)
         {
-            if (OldSprites.ContainsKey(cornerNorthWestSprite.Id))
+            if (OldSprites.ContainsKey(cornerNorthWestSprite.Uuid))
             {
-                TilesetSpriteData oldSprite = OldSprites[cornerNorthWestSprite.Id];
+                TilesetSpriteData oldSprite = OldSprites[cornerNorthWestSprite.Uuid];
             
                 cornerNorthWestPixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
             }
@@ -545,9 +541,9 @@ public class TilesetSpriteSheetBuilder
         byte[] cornerNorthEastPixels = null;
         if (cornerNorthEastSprite != null)
         {
-            if (OldSprites.ContainsKey(cornerNorthEastSprite.Id))
+            if (OldSprites.ContainsKey(cornerNorthEastSprite.Uuid))
             {
-                TilesetSpriteData oldSprite = OldSprites[cornerNorthEastSprite.Id];
+                TilesetSpriteData oldSprite = OldSprites[cornerNorthEastSprite.Uuid];
             
                 cornerNorthEastPixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
             }
@@ -556,9 +552,9 @@ public class TilesetSpriteSheetBuilder
         byte[] cornerSouthEastPixels = null;
         if (cornerSouthEastSprite != null)
         {
-            if (OldSprites.ContainsKey(cornerSouthEastSprite.Id))
+            if (OldSprites.ContainsKey(cornerSouthEastSprite.Uuid))
             {
-                TilesetSpriteData oldSprite = OldSprites[cornerSouthEastSprite.Id];
+                TilesetSpriteData oldSprite = OldSprites[cornerSouthEastSprite.Uuid];
             
                 cornerSouthEastPixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
             }
@@ -567,9 +563,9 @@ public class TilesetSpriteSheetBuilder
         byte[] cornerSouthWestPixels = null;
         if (cornerSouthWestSprite != null)
         {
-            if (OldSprites.ContainsKey(cornerSouthWestSprite.Id))
+            if (OldSprites.ContainsKey(cornerSouthWestSprite.Uuid))
             {
-                TilesetSpriteData oldSprite = OldSprites[cornerSouthWestSprite.Id];
+                TilesetSpriteData oldSprite = OldSprites[cornerSouthWestSprite.Uuid];
             
                 cornerSouthWestPixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
             }
@@ -578,9 +574,9 @@ public class TilesetSpriteSheetBuilder
         byte[] edgeVerticalEastPixels = null;
         if (edgeVerticalEastSprite != null)
         {
-            if (OldSprites.ContainsKey(edgeVerticalEastSprite.Id))
+            if (OldSprites.ContainsKey(edgeVerticalEastSprite.Uuid))
             {
-                TilesetSpriteData oldSprite = OldSprites[edgeVerticalEastSprite.Id];
+                TilesetSpriteData oldSprite = OldSprites[edgeVerticalEastSprite.Uuid];
             
                 edgeVerticalEastPixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
             }
@@ -589,9 +585,9 @@ public class TilesetSpriteSheetBuilder
         byte[] edgeVerticalWestPixels = null;
         if (edgeVerticalWestSprite != null)
         {
-            if (OldSprites.ContainsKey(edgeVerticalWestSprite.Id))
+            if (OldSprites.ContainsKey(edgeVerticalWestSprite.Uuid))
             {
-                TilesetSpriteData oldSprite = OldSprites[edgeVerticalWestSprite.Id];
+                TilesetSpriteData oldSprite = OldSprites[edgeVerticalWestSprite.Uuid];
             
                 edgeVerticalWestPixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
             }
@@ -600,9 +596,9 @@ public class TilesetSpriteSheetBuilder
         byte[] edgeHorizontalNorthPixels = null;
         if (edgeHorizontalNorthSprite != null)
         {
-            if (OldSprites.ContainsKey(edgeHorizontalNorthSprite.Id))
+            if (OldSprites.ContainsKey(edgeHorizontalNorthSprite.Uuid))
             {
-                TilesetSpriteData oldSprite = OldSprites[edgeHorizontalNorthSprite.Id];
+                TilesetSpriteData oldSprite = OldSprites[edgeHorizontalNorthSprite.Uuid];
             
                 edgeHorizontalNorthPixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
             }
@@ -611,9 +607,9 @@ public class TilesetSpriteSheetBuilder
         byte[] edgeHorizontalSouthPixels = null;
         if (edgeHorizontalSouthSprite != null)
         {
-            if (OldSprites.ContainsKey(edgeHorizontalSouthSprite.Id))
+            if (OldSprites.ContainsKey(edgeHorizontalSouthSprite.Uuid))
             {
-                TilesetSpriteData oldSprite = OldSprites[edgeHorizontalSouthSprite.Id];
+                TilesetSpriteData oldSprite = OldSprites[edgeHorizontalSouthSprite.Uuid];
             
                 edgeHorizontalSouthPixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
             }
@@ -621,9 +617,9 @@ public class TilesetSpriteSheetBuilder
 
         byte[] tileCenterPixels = null;
         
-        if (OldSprites.ContainsKey(spriteData.Id))
+        if (OldSprites.ContainsKey(spriteData.Uuid))
         {
-            TilesetSpriteData oldSprite = OldSprites[spriteData.Id];
+            TilesetSpriteData oldSprite = OldSprites[spriteData.Uuid];
             
             tileCenterPixels = TilesetSpriteSheetReader.ReadSpritePixels(oldSprite);
         }
@@ -634,7 +630,7 @@ public class TilesetSpriteSheetBuilder
         // blit the edge stringId (name)
         int tileNameOffsetX = column * Constants.TileSize + 4;
         int tileNameOffsetY = (row + 1) * Constants.TileSize + Constants.TileSize / 2;
-        BlitString(tileNameOffsetX, tileNameOffsetY, tile.StringId);
+        BlitString(tileNameOffsetX, tileNameOffsetY, tileCenter.StringId);
         
         // The “view” in geometry view (without edge coloring)
         int geometryViewRow = row + 0;
@@ -650,9 +646,9 @@ public class TilesetSpriteSheetBuilder
         int fullTextureViewColumn = column + 3;
 
         BlitTileOutline(geometryViewRow, geometryViewColumn, 1);
-        BlitTileCenterGeometry(geometryViewRow, geometryViewColumn, tile.Geometry);
+        BlitTileCenterGeometry(geometryViewRow, geometryViewColumn, tileCenter.Geometry);
         BlitTileOutline(geometryViewColorRow, geometryViewColorColumn, 1);
-        BlitTileCenterGeometryColor(geometryViewColorRow, geometryViewColorColumn, tile.Geometry,
+        BlitTileCenterGeometryColor(geometryViewColorRow, geometryViewColorColumn, tileCenter.Geometry,
             cornerNorthWestColor, cornerNorthEastColor,
             cornerSouthEastColor, cornerSouthWestColor,
             edgeVerticalEastColor, edgeVerticalWestColor, 
@@ -670,7 +666,7 @@ public class TilesetSpriteSheetBuilder
             cornerNorthWestPixels, cornerNorthEastPixels, cornerSouthEastPixels, cornerSouthWestPixels,
             edgeVerticalEastPixels, edgeVerticalWestPixels,
             edgeHorizontalNorthPixels, edgeHorizontalSouthPixels,
-            tile.Geometry,
+            tileCenter.Geometry,
             Color.Pink);
     }
     
@@ -751,7 +747,7 @@ public class TilesetSpriteSheetBuilder
     
     public void BlitCornerColor(int row, int column, int colorId)
     {
-        Color color = EditorState.TilesetColorPaletteSystem.GetCornerColor(colorId);
+        Color color = TilesetColorPaletteSystem.GetCornerColor(colorId);
         
        BlitCorner(row, column, color);
     }
@@ -834,7 +830,7 @@ public class TilesetSpriteSheetBuilder
     
     public void BlitHorizontalEdgeColor(int row, int column, int colorId)
     {
-        Color color = EditorState.TilesetColorPaletteSystem.GetEdgeHorizontalColor(colorId);
+        Color color = TilesetColorPaletteSystem.GetEdgeHorizontalColor(colorId);
         
         BlitHorizontalEdge(row, column, color);
     }
@@ -919,7 +915,7 @@ public class TilesetSpriteSheetBuilder
     
     public void BlitVerticalEdgeColor(int row, int column, int colorId)
     {
-        Color color = EditorState.TilesetColorPaletteSystem.GetEdgeVerticalColor(colorId);
+        Color color = TilesetColorPaletteSystem.GetEdgeVerticalColor(colorId);
         
         BlitVerticalEdge(row, column, color);
     }
