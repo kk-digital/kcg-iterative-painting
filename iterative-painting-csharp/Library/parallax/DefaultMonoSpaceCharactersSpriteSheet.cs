@@ -1,11 +1,8 @@
 using System.Drawing;
 using BigGustave;
-using Enums;
-using MapEditor;
 using Utility;
-using WangTiles;
 
-namespace EditorUtility;
+namespace Parallax;
 
 // Utility class that helps us use the geometry sprite sheet
 // The sprite pixels are stored in memory

@@ -1,6 +1,5 @@
-using WangTiles;
+
 using Enums;
-using Enums.PlanetTileMap;
 using Utility;
 
 namespace Parallax;
@@ -114,50 +113,50 @@ public class DefaultGeometryTiles
         // TODO(): Make sure it does not have geometry tiles at this stage
         // TODO(): Make sure it does not use the same geometry tile ids
         
-        parallaxManager.AddTileCenter(tileSB01);
+        parallaxManager.AddTileCenter(tilesetUuid, tileSB01);
         
-        parallaxManager.AddTileCenter(tileHBR0);
-        parallaxManager.AddTileCenter(tileHBR1);
-        parallaxManager.AddTileCenter(tileHBR2);
-        parallaxManager.AddTileCenter(tileHBR3);
+        parallaxManager.AddTileCenter(tilesetUuid, tileHBR0);
+        parallaxManager.AddTileCenter(tilesetUuid, tileHBR1);
+        parallaxManager.AddTileCenter(tilesetUuid, tileHBR2);
+        parallaxManager.AddTileCenter(tilesetUuid, tileHBR3);
         
-        parallaxManager.AddTileCenter(tileTBR0);
-        parallaxManager.AddTileCenter(tileTBR1);
-        parallaxManager.AddTileCenter(tileTBR2);
-        parallaxManager.AddTileCenter(tileTBR3);
+        parallaxManager.AddTileCenter(tilesetUuid, tileTBR0);
+        parallaxManager.AddTileCenter(tilesetUuid, tileTBR1);
+        parallaxManager.AddTileCenter(tilesetUuid, tileTBR2);
+        parallaxManager.AddTileCenter(tilesetUuid, tileTBR3);
         
-        parallaxManager.AddTileCenter(tileL1R0);
-        parallaxManager.AddTileCenter(tileL1R1);
-        parallaxManager.AddTileCenter(tileL1R2);
-        parallaxManager.AddTileCenter(tileL1R3);
-        parallaxManager.AddTileCenter(tileL1R4);
-        parallaxManager.AddTileCenter(tileL1R5);
-        parallaxManager.AddTileCenter(tileL1R6);
-        parallaxManager.AddTileCenter(tileL1R7);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL1R0);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL1R1);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL1R2);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL1R3);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL1R4);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL1R5);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL1R6);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL1R7);
         
-        parallaxManager.AddTileCenter(tileL2R0);
-        parallaxManager.AddTileCenter(tileL2R1);
-        parallaxManager.AddTileCenter(tileL2R2);
-        parallaxManager.AddTileCenter(tileL2R3);
-        parallaxManager.AddTileCenter(tileL2R4);
-        parallaxManager.AddTileCenter(tileL2R5);
-        parallaxManager.AddTileCenter(tileL2R6);
-        parallaxManager.AddTileCenter(tileL2R7);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL2R0);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL2R1);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL2R2);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL2R3);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL2R4);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL2R5);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL2R6);
+        parallaxManager.AddTileCenter(tilesetUuid, tileL2R7);
         
-        parallaxManager.AddTileCenter(tileQPR0);
-        parallaxManager.AddTileCenter(tileQPR1);
-        parallaxManager.AddTileCenter(tileQPR2);
-        parallaxManager.AddTileCenter(tileQPR3);
+        parallaxManager.AddTileCenter(tilesetUuid, tileQPR0);
+        parallaxManager.AddTileCenter(tilesetUuid, tileQPR1);
+        parallaxManager.AddTileCenter(tilesetUuid, tileQPR2);
+        parallaxManager.AddTileCenter(tilesetUuid, tileQPR3);
         
-        parallaxManager.AddTileCenter(tileHPR0);
-        parallaxManager.AddTileCenter(tileHPR1);
-        parallaxManager.AddTileCenter(tileHPR2);
-        parallaxManager.AddTileCenter(tileHPR3);
+        parallaxManager.AddTileCenter(tilesetUuid, tileHPR0);
+        parallaxManager.AddTileCenter(tilesetUuid, tileHPR1);
+        parallaxManager.AddTileCenter(tilesetUuid, tileHPR2);
+        parallaxManager.AddTileCenter(tilesetUuid, tileHPR3);
         
-        parallaxManager.AddTileCenter(tileFPR0);
-        parallaxManager.AddTileCenter(tileFPR1);
-        parallaxManager.AddTileCenter(tileFPR2);
-        parallaxManager.AddTileCenter(tileFPR3);
+        parallaxManager.AddTileCenter(tilesetUuid, tileFPR0);
+        parallaxManager.AddTileCenter(tilesetUuid, tileFPR1);
+        parallaxManager.AddTileCenter(tilesetUuid, tileFPR2);
+        parallaxManager.AddTileCenter(tilesetUuid, tileFPR3);
     }
 
     public void LoadDefaultGeometryTiles()

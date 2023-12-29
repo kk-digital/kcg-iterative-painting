@@ -278,6 +278,37 @@ public class ParallaxManager
         return tileCenter;
     }
     
+    public TilesetTileCenter AddTileCenter(UInt64 tilesetId, TilesetTileCenter tileCenter)
+    {
+        // Tileset existence
+        TilesetInformation tilesetInformation = GetTileset(tilesetId);
+        TilesetData tilesetData = GetTilesetData(tilesetId);
+            
+        if (tilesetInformation == null || tilesetData == null)
+        {
+            return null;
+        }
+        
+        UInt64 uuid = ShortHash.GenerateUUID();
+        
+        // Keep trying until we get a unique uuid
+        while (TilesetTilesDictionary.ContainsKey(uuid))
+        {
+            uuid = ShortHash.GenerateUUID();
+        }
+
+        tileCenter.Uuid = uuid;
+
+        tilesetData.TilesetTiles.Add(tileCenter.Uuid);
+        TilesetTiles.Add(tileCenter);
+
+        int tileIndex = TilesetTiles.Count - 1;
+        
+        TilesetTilesDictionary.Add(tileCenter.Uuid, tileIndex);
+
+        return tileCenter;
+    }
+    
     public TilesetCorner AddCorner(UInt64 tilesetId)
     {
         // Tileset existence
