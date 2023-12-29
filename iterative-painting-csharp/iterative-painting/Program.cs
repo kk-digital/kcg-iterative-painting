@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Parallax;
 using Utility;
 
 public class CustomUUID
@@ -15,6 +16,5 @@ public class CustomUUID
         System.Console.WriteLine($"uuid : {uuid}");
         System.Console.WriteLine($"hash : {hash}");
         System.Console.WriteLine($"decodeUuid : {decodeUuid}");
-
     }
 }

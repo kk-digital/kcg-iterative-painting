@@ -18,7 +18,7 @@ public class Constants
     
     public static readonly int InvalidIndex = -1;
     public const int LatestSequenceNumber = -1;
-    public const int AllTilesets = -1;
+    public const string AllTilesets = "AllTilesets";
 
     public const int TilesetIdRuntimeOffset = 1000;
     

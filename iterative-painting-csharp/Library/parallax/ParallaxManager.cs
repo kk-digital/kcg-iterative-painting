@@ -26,6 +26,11 @@ public class ParallaxManager
     public Dictionary<UInt64, int> TilesetSpriteSheetDatasDictionary;
     
     public Dictionary<UInt64, TilesetData> TilesetDatas;
+
+
+    public DefaultGeometrySpriteSheet DefaultGeometrySpriteSheet;
+    public DefaultMonoSpaceCharactersSpriteSheet DefaultMonoSpaceCharactersSpriteSheet;
+    public TilesetColorPaletteSystem TilesetColorPaletteSystem;
     
     public void InitStage1()
     {
@@ -46,11 +51,21 @@ public class ParallaxManager
         TilesetSpriteSheetDatasDictionary = new Dictionary<UInt64, int>();
 
         TilesetDatas = new Dictionary<ulong, TilesetData>();
+
+        DefaultGeometrySpriteSheet = new DefaultGeometrySpriteSheet();
+        DefaultMonoSpaceCharactersSpriteSheet = new DefaultMonoSpaceCharactersSpriteSheet();
+        TilesetColorPaletteSystem = new TilesetColorPaletteSystem();
+        
+        DefaultGeometrySpriteSheet.InitStage1();
+        DefaultMonoSpaceCharactersSpriteSheet.InitStage1();
+        TilesetColorPaletteSystem.InitStage1();
     }
 
     public void InitStage2()
     {
-        
+        DefaultGeometrySpriteSheet.InitStage2();
+        DefaultMonoSpaceCharactersSpriteSheet.InitStage2();
+        TilesetColorPaletteSystem.InitStage2();
     }
     
     #region Getters
@@ -230,7 +245,7 @@ public class ParallaxManager
 
         TilesetData tilesetData = new TilesetData
         {
-            Tileset = uuid
+            TilesetUuid = uuid
         };
         
         // Fatal error checks
@@ -401,10 +416,41 @@ public class ParallaxManager
 
         return edge;
     }
-
-    public void Save(UInt64 tilesetId)
+    
+    public TilesetSpriteSheetData AddSpriteSheet(UInt64 tilesetId)
     {
-         TilesetData tilesetData = GetTilesetData(tilesetId);
+        // Tileset existence
+        TilesetInformation tilesetInformation = GetTileset(tilesetId);
+        TilesetData tilesetData = GetTilesetData(tilesetId);
+            
+        if (tilesetInformation == null || tilesetData == null)
+        {
+            return null;
+        }
+        
+        UInt64 uuid = ShortHash.GenerateUUID();
+        
+        // Keep trying until we get a unique uuid
+        while (TilesetSpriteSheetDatasDictionary.ContainsKey(uuid))
+        {
+            uuid = ShortHash.GenerateUUID();
+        }
+
+        TilesetSpriteSheetData spriteSheet = new TilesetSpriteSheetData();
+
+        tilesetData.TilesetSpriteSheetDatas.Add(uuid);
+        TilesetSpriteSheetDatas.Add(spriteSheet);
+
+        int index = TilesetCorners.Count - 1;
+        
+        TilesetSpriteSheetDatasDictionary.Add(uuid, index);
+
+        return spriteSheet;
+    }
+
+    public void Save(UInt64 tilesetUuid, string description)
+    {
+         TilesetData tilesetData = GetTilesetData(tilesetUuid);
 
          if (tilesetData == null)
          {
@@ -423,18 +469,18 @@ public class ParallaxManager
         tilesetSpriteSheetReader.InitStage2();
         
         WangTilesLoader wangTilesLoader = new WangTilesLoader();
-        wangTilesLoader.LoadWangTiles(tilesetId, tilesetData.SequenceNumber);
+        wangTilesLoader.LoadWangTiles(tilesetInformation.StringId, tilesetInformation.SequenceNumber);
 
         List<TilesetSpriteData> oldSprites = new List<TilesetSpriteData>();
-        if (wangTilesLoader.LoaderTilesetsDictionary.ContainsKey(tilesetId))
+        if (wangTilesLoader.LoaderTilesetsDictionary.ContainsKey(tilesetUuid))
         {
-            WangTilesLoaderTileset oldTileset = wangTilesLoader.LoaderTilesetsDictionary[tilesetId];
+            ParallaxLoaderTileset oldTileset = wangTilesLoader.LoaderTilesetsDictionary[tilesetUuid];
 
             oldSprites = oldTileset.TilesetSpriteDatas;
             
             foreach(TilesetSpriteSheetData spriteSheet in  oldTileset.TilesetSpriteSheetDatas)
             {
-                tilesetSpriteSheetReader.ReadSpriteSheet(tilesetId, spriteSheet.Id);
+                tilesetSpriteSheetReader.ReadSpriteSheet(tilesetUuid, spriteSheet.Uuid);
             }
         }
 
@@ -445,7 +491,12 @@ public class ParallaxManager
         // We iterate over all the sprites 
         // And order them by type
         // Corners, horizontal edges, vertical edges, and then tiles
-        List <TilesetSpriteData> sprites = tilesetData.GetSprites();
+        List<TilesetSpriteData> sprites = new List<TilesetSpriteData>();
+        foreach(UInt64 spriteUuid in tilesetData.TilesetSpriteDatas)
+        {
+            TilesetSpriteData sprite = GetSprite(spriteUuid);
+            sprites.Add(sprite);
+        }
 
         List<TilesetSpriteData> cornerSprites = new List<TilesetSpriteData>();
         List<TilesetSpriteData> edgeHorizontalSprites = new List<TilesetSpriteData>();
@@ -479,6 +530,14 @@ public class ParallaxManager
             }
         }
         
+        List<TilesetSpriteSheetData> spriteSheetDatas = new List<TilesetSpriteSheetData>();
+        foreach (UInt64 spriteSheetUuid in tilesetData.TilesetSpriteSheetDatas)
+        {
+            TilesetSpriteSheetData spriteSheet = GetSpriteSheet(spriteSheetUuid);
+            
+            spriteSheetDatas.Add(spriteSheet);
+        }
+        
         // Foreach corner/edge/tile
         // find a spot on the sprite sheet png
         // The sprite sheet is a giant table of sprites
@@ -493,10 +552,24 @@ public class ParallaxManager
         {
             int spriteRow = offsetY * Constants.SpritesheetTilesPerLine;
             int spriteColumn = offsetX * Constants.SpriteSheetWidthInTiles;
+
+            TilesetSpriteSheetData spriteSheet = null;
+            if (spriteSheetIndex >= 0 && spriteSheetIndex < spriteSheetDatas.Count)
+            {
+                spriteSheet = spriteSheetDatas[spriteSheetIndex];
+            }
+
+            if (spriteSheet == null)
+            {
+                spriteSheet = AddSpriteSheet(tilesetInformation.Uuid);
+                spriteSheet.StringId = $"sprite_sheet_{spriteSheetIndex}";
+                
+                spriteSheetDatas.Add(spriteSheet);
+            }
             
             spriteData.SpriteSheetRow = spriteRow;
             spriteData.SpriteSheetColumn = spriteColumn;
-            spriteData.SpriteSheetId = spriteSheetIndex;
+            spriteData.SpriteSheetUuid = spriteSheet.Uuid;
 
             spriteIndex++;
             offsetX++;
@@ -524,9 +597,23 @@ public class ParallaxManager
             int spriteRow = offsetY * Constants.SpritesheetTilesPerLine;
             int spriteColumn = offsetX * Constants.SpriteSheetWidthInTiles;
             
+            TilesetSpriteSheetData spriteSheet = null;
+            if (spriteSheetIndex >= 0 && spriteSheetIndex < spriteSheetDatas.Count)
+            {
+                spriteSheet = spriteSheetDatas[spriteSheetIndex];
+            }
+
+            if (spriteSheet == null)
+            {
+                spriteSheet = AddSpriteSheet(tilesetInformation.Uuid);
+                spriteSheet.StringId = $"sprite_sheet_{spriteSheetIndex}";
+                
+                spriteSheetDatas.Add(spriteSheet);
+            }
+            
             spriteData.SpriteSheetRow = spriteRow;
             spriteData.SpriteSheetColumn = spriteColumn;
-            spriteData.SpriteSheetId = spriteSheetIndex;
+            spriteData.SpriteSheetUuid = spriteSheet.Uuid;
 
             spriteIndex++;
             offsetX++;
@@ -553,9 +640,23 @@ public class ParallaxManager
             int spriteRow = offsetY * Constants.SpritesheetTilesPerLine;
             int spriteColumn = offsetX * Constants.SpriteSheetWidthInTiles;
             
+            TilesetSpriteSheetData spriteSheet = null;
+            if (spriteSheetIndex >= 0 && spriteSheetIndex < spriteSheetDatas.Count)
+            {
+                spriteSheet = spriteSheetDatas[spriteSheetIndex];
+            }
+
+            if (spriteSheet == null)
+            {
+                spriteSheet = AddSpriteSheet(tilesetInformation.Uuid);
+                spriteSheet.StringId = $"sprite_sheet_{spriteSheetIndex}";
+                
+                spriteSheetDatas.Add(spriteSheet);
+            }
+            
             spriteData.SpriteSheetRow = spriteRow;
             spriteData.SpriteSheetColumn = spriteColumn;
-            spriteData.SpriteSheetId = spriteSheetIndex;
+            spriteData.Uuid = spriteSheet.Uuid;
 
             spriteIndex++;
             offsetX++;
@@ -582,9 +683,23 @@ public class ParallaxManager
             int spriteRow = offsetY * Constants.SpritesheetTilesPerLine;
             int spriteColumn = offsetX * Constants.SpriteSheetWidthInTiles;
             
+            TilesetSpriteSheetData spriteSheet = null;
+            if (spriteSheetIndex >= 0 && spriteSheetIndex < spriteSheetDatas.Count)
+            {
+                spriteSheet = spriteSheetDatas[spriteSheetIndex];
+            }
+
+            if (spriteSheet == null)
+            {
+                spriteSheet = AddSpriteSheet(tilesetInformation.Uuid);
+                spriteSheet.StringId = $"sprite_sheet_{spriteSheetIndex}";
+                
+                spriteSheetDatas.Add(spriteSheet);
+            }
+            
             spriteData.SpriteSheetRow = spriteRow;
             spriteData.SpriteSheetColumn = spriteColumn;
-            spriteData.SpriteSheetId = spriteSheetIndex;
+            spriteData.SpriteSheetUuid = spriteSheet.Uuid;
 
             spriteIndex++;
             offsetX++;
@@ -606,28 +721,16 @@ public class ParallaxManager
             }
         }
 
-        for (int spriteSheetId = 0; spriteSheetId <= spriteSheetIndex; spriteSheetId++)
+        for (spriteSheetIndex = 0; spriteSheetIndex < TilesetSpriteSheetDatas.Count; spriteSheetIndex++)
         {
-            TilesetSpriteSheetData spriteSheetData = tilesetData.sp(tilesetId, spriteSheetId);
+            TilesetSpriteSheetData spriteSheet = TilesetSpriteSheetDatas[spriteSheetIndex];
+            
+            string pngfilePath = WangTilesUtility.GetDataPath(tilesetInformation.SequenceNumber, tilesetInformation.StringId,
+                DataType.SpriteSheetData, spriteSheet.StringId, KcgData.FileType.Png);
 
-            if (spriteSheetData == null)
-            {
-                spriteSheetData = new TilesetSpriteSheetData
-                {
-                    Id = spriteSheetId,
-                    SequenceNumber = 0,
-                    StringId = $"sprite_sheet_{spriteSheetId}",
-                    Description = ""
-                };
-                AddSpriteSheet(spriteSheetData);
-            }
-
-            string pngfilePath = WangTilesUtility.GetDataPath(tilesetData.SequenceNumber, CurrentTilesetId,
-                DataType.SpriteSheetData, spriteSheetId, KcgData.FileType.Png);
-
-            spriteSheetData.Filepath = pngfilePath;
-            spriteSheetData.Width = spriteSheetMaxSpritesPerColumn * Constants.SpriteSheetWidthInTiles;
-            spriteSheetData.Height = spriteSheetMaxSpritesPerRow * Constants.SpritesheetTilesPerLine;
+            spriteSheet.Filepath = pngfilePath;
+            spriteSheet.Width = spriteSheetMaxSpritesPerColumn * Constants.SpriteSheetWidthInTiles;
+            spriteSheet.Height = spriteSheetMaxSpritesPerRow * Constants.SpritesheetTilesPerLine;
         }
 
 
@@ -639,26 +742,26 @@ public class ParallaxManager
         TilesetManifest tilesetManifest = new TilesetManifest();
         tilesetManifest.Files = new List<TilesetManifestItem>();
 
-        int maxSequenceNumber = 0;
+        Int64 maxSequenceNumber = 0;
         
-        string tilesetIdString = WangTilesUtility.GetStringFromDataId(tilesetId);
+        string tilesetIdString = tilesetInformation.StringId;
         string path = $"{Constants.CacheFolderName}/{Constants.TilesetsFolderName}/{tilesetIdString}";
         if (!FileUtils.DirectoryExistsFull(path))
         {
             FileUtils.CreateDirectoryFull(path);
         }
         
-        List <TilesetManifest> tilesetVersions = WangTilesUtility.ListVersions(tilesetId);
+        List <TilesetManifest> tilesetVersions = WangTilesUtility.ListVersions(tilesetIdString);
         foreach (var tileset in tilesetVersions)
         {
             maxSequenceNumber = Math.Max(tileset.SequenceNumber, maxSequenceNumber);
         }
         
         // Allways increment the version anytime we save
-        tilesetData.SequenceNumber = maxSequenceNumber + 1;
+        tilesetInformation.SequenceNumber = maxSequenceNumber + 1;
 
-        tilesetManifest.SequenceNumber = tilesetData.SequenceNumber;
-        tilesetManifest.SequenceNumberString = sequenceNumberString;
+        tilesetManifest.SequenceNumber = tilesetInformation.SequenceNumber;
+        tilesetManifest.Description = description;
         
         for(int cornerIndex = 0; cornerIndex < tilesetData.TilesetCorners.Count; cornerIndex++)
         {
@@ -856,15 +959,21 @@ public class ParallaxManager
                 FileUtils.CreateDirectoryFull(directory);
             }
             
-            sprites = tilesetData.GetSprites(spriteSheet.Value.Id);
+            sprites = new List<TilesetSpriteData>();
+            foreach(UInt64 spriteUuid in tilesetData.TilesetSpriteDatas)
+            {
+                TilesetSpriteData sprite = GetSprite(spriteUuid);
+                
+                sprites.Add(sprite);
+            }
             
-            TilesetSpriteSheetBuilder.MakePng(tilesetData.Tileset.Id, spriteSheet.Value.Id, pngfilePath, oldSprites, sprites,
+            TilesetSpriteSheetBuilder.MakePng(tilesetInformation.Uuid, pngfilePath, oldSprites, sprites,
                 DefaultGeometrySpriteSheet, DefaultMonoSpaceCharactersSpriteSheet,
                 tilesetSpriteSheetReader,
-                this);
+                this, TilesetColorPaletteSystem);
             
-            spriteSheet.Value.Filepath = pngfilePath;
-            TilesetDataEncoder.Encode(filePath, spriteSheet.Value);
+            spriteSheet.Filepath = pngfilePath;
+            TilesetDataEncoder.Encode(filePath, spriteSheet);
 
             // Check if file was created successfully
             if (!File.Exists(filePath))
@@ -932,7 +1041,7 @@ public class ParallaxManager
                 DataType = DataType.SpriteData,
                 FileSize = (int)fileSizeInBytes,
                 HashSha256 = hash256,
-                SequenceNumber = 0
+                SequenceNumber = sprite.SequenceNumber
             };
             
             // Add the new vertical edge to the tileset manifest 
@@ -940,15 +1049,15 @@ public class ParallaxManager
         }
 
         {
-            Tileset tileset = new Tileset
+            TilesetInformation tileset = new TilesetInformation
             {
-                Id = tilesetId,
-                StringId = tilesetData.Tileset.StringId,
+                Uuid = tilesetUuid,
+                StringId = tilesetInformation.StringId,
                 SequenceNumber = 0,
                 Description = ""
             };
 
-            string filePath = WangTilesUtility.GetTilesetPath(tilesetData.SequenceNumber, tilesetId);
+            string filePath = WangTilesUtility.GetTilesetPath(tilesetInformation.SequenceNumber, tilesetInformation.StringId);
 
             string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
             if (!FileUtils.DirectoryExistsFull(directory))
@@ -960,14 +1069,15 @@ public class ParallaxManager
         }
 
         // Save the tileset manifest
-        SaveTilesetManifest(CurrentTilesetId, tilesetManifest);
+        SaveTilesetManifest(tilesetUuid, tilesetManifest);
     }
     
-    public void SaveTilesetManifest(int tilesetId, TilesetManifest tilesetManifest)
+    public void SaveTilesetManifest(UInt64 tilesetUuid, TilesetManifest tilesetManifest)
     {
-        TilesetData tilesetData = GetTilesetData(CurrentTilesetId);
+        TilesetInformation tilesetInformation = GetTileset(tilesetUuid);
+        TilesetData tilesetData = GetTilesetData(tilesetUuid);
 
-        if (tilesetData == null)
+        if (tilesetData == null || tilesetInformation == null)
         {
             // fail
             return;
@@ -980,7 +1090,7 @@ public class ParallaxManager
 
         tilesetManifest.CreationDate = todayString;
         
-        string filePath = WangTilesUtility.GetManifestPath(tilesetData.SequenceNumber, tilesetId);
+        string filePath = WangTilesUtility.GetManifestPath(tilesetInformation.SequenceNumber, tilesetInformation.StringId);
         // Make sure file directory exists
         string directory = WangTilesUtility.GetDirectoryFromFilepath(filePath);
         if (!FileUtils.DirectoryExistsFull(directory))

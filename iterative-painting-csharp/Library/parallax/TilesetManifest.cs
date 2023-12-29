@@ -19,7 +19,8 @@ public class Manifest
 public class TilesetManifest
 {
     public int Version { get; set; }
-    public int SequenceNumber { get; set; }
+    public Int64 SequenceNumber { get; set; }
+    public string Description { get; set; }
     public string CreationDate { get; set; }
     public List<TilesetManifestItem> Files { get; set; }
 }

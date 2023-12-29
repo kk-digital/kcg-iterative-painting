@@ -9,7 +9,7 @@ public class WangTilesLoader
     public List<ParallaxLoaderTileset> LoadedTilesets = new();
     public Dictionary<UInt64, ParallaxLoaderTileset> LoaderTilesetsDictionary = new();
 
-    public void LoadWangTiles(int loadedTilesetId = Constants.AllTilesets, int sequencenumber = Constants.LatestSequenceNumber)
+    public void LoadWangTiles(string loadedTilesetStringId = Constants.AllTilesets, Int64 sequencenumber = Constants.LatestSequenceNumber)
     {
         LoadedTilesets = new List<ParallaxLoaderTileset>();
         LoaderTilesetsDictionary = new Dictionary<UInt64, ParallaxLoaderTileset>();
@@ -41,13 +41,12 @@ public class WangTilesLoader
         foreach (string tilesetFolder in tilesetFolders)
         {
 
-            if (loadedTilesetId != Constants.AllTilesets)
+            if (loadedTilesetStringId != Constants.AllTilesets)
             {
                 string folderCorrected = tilesetFolder.Replace('\\', '/');
                 string idString = folderCorrected.Split('/').LastOrDefault();
-                int idInt = int.Parse(idString);
 
-                if (idInt != loadedTilesetId)
+                if (idString != loadedTilesetStringId)
                 {
                     continue;
                 }

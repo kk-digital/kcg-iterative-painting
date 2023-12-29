@@ -164,20 +164,20 @@ public class WangTilesUtility
         return path;
     }
 
-    public static string GetManifestPath(int version, int tilesetId)
+    public static string GetManifestPath(Int64 version, string tilesetStringId)
     {
         string versionString = GetStringFromVersionNumber(version);
-        string tilesetIdString = GetStringFromDataId(tilesetId);
+        string tilesetIdString = tilesetStringId;
         
         string path = $"{Constants.CacheFolderName}/{Constants.TilesetsFolderName}/{tilesetIdString}/{versionString}/tileset-manifest.json";
         
         return path;
     }
     
-    public static string GetTilesetPath(int version, int tilesetId)
+    public static string GetTilesetPath(Int64 version, string tilesetStringId)
     {
         string versionString = GetStringFromVersionNumber(version);
-        string tilesetIdString = GetStringFromDataId(tilesetId);
+        string tilesetIdString = tilesetStringId;
         
         string path = $"{Constants.CacheFolderName}/{Constants.TilesetsFolderName}/{tilesetIdString}/{versionString}/tileset.json";
         
@@ -237,9 +237,9 @@ public class WangTilesUtility
         return tilesetIds;
     }
     
-    public static List<TilesetManifest> ListVersions(int tilesetId)
+    public static List<TilesetManifest> ListVersions(string tilesetStringId)
     {
-        string tilesetIdString = GetStringFromDataId(tilesetId);
+        string tilesetIdString = tilesetStringId;
         string path = $"{Constants.CacheFolderName}/{Constants.TilesetsFolderName}/{tilesetIdString}";
         
         if (!FileUtils.DirectoryExistsFull(path))
