@@ -1,0 +1,19 @@
+{
+  "Uuid": 8994059212024694287,
+  "StringId": "tile_91",
+  "SequenceNumber": 0,
+  "Description": null,
+  "IsDefaultGeometryTile": false,
+  "SpriteId": 0,
+  "Geometry": "Error",
+  "Layer": "None",
+  "CornerNorthWest": 0,
+  "CornerNorthEast": 0,
+  "CornerSouthEast": 0,
+  "CornerSouthWest": 0,
+  "EdgeVerticalEast": 0,
+  "EdgeVerticalWest": 0,
+  "EdgeHorizontalNorth": 0,
+  "EdgeHorizontalSouth": 0,
+  "IsDeprecated": false
+}

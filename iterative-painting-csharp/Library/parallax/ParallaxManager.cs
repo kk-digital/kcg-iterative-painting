@@ -241,7 +241,10 @@ public class ParallaxManager
             uuid = ShortHash.GenerateUUID();
         }
 
-        TilesetInformation tilesetInformation = new TilesetInformation();
+        TilesetInformation tilesetInformation = new TilesetInformation
+        {
+            Uuid = uuid
+        };
 
         TilesetData tilesetData = new TilesetData
         {
@@ -281,7 +284,10 @@ public class ParallaxManager
             uuid = ShortHash.GenerateUUID();
         }
 
-        TilesetTileCenter tileCenter = new TilesetTileCenter();
+        TilesetTileCenter tileCenter = new TilesetTileCenter 
+        {
+            Uuid = uuid
+        };
 
         tilesetData.TilesetTiles.Add(uuid);
         TilesetTiles.Add(tileCenter);
@@ -343,7 +349,10 @@ public class ParallaxManager
             uuid = ShortHash.GenerateUUID();
         }
 
-        TilesetCorner corner = new TilesetCorner();
+        TilesetCorner corner = new TilesetCorner
+        {
+            Uuid = uuid
+        };
 
         tilesetData.TilesetCorners.Add(uuid);
         TilesetCorners.Add(corner);
@@ -374,7 +383,10 @@ public class ParallaxManager
             uuid = ShortHash.GenerateUUID();
         }
 
-        TilesetEdgeHorizontal edge = new TilesetEdgeHorizontal();
+        TilesetEdgeHorizontal edge = new TilesetEdgeHorizontal
+        {
+            Uuid = uuid
+        };
 
         tilesetData.TilesetHorizontalEdges.Add(uuid);
         TilesetHorizontalEdges.Add(edge);
@@ -405,7 +417,10 @@ public class ParallaxManager
             uuid = ShortHash.GenerateUUID();
         }
 
-        TilesetEdgeVertical edge = new TilesetEdgeVertical();
+        TilesetEdgeVertical edge = new TilesetEdgeVertical
+        {
+            Uuid = uuid
+        };
 
         tilesetData.TilesetVerticalEdges.Add(uuid);
         TilesetVerticalEdges.Add(edge);
@@ -436,7 +451,10 @@ public class ParallaxManager
             uuid = ShortHash.GenerateUUID();
         }
 
-        TilesetSpriteSheetData spriteSheet = new TilesetSpriteSheetData();
+        TilesetSpriteSheetData spriteSheet = new TilesetSpriteSheetData
+        {
+            Uuid = uuid
+        };
 
         tilesetData.TilesetSpriteSheetDatas.Add(uuid);
         TilesetSpriteSheetDatas.Add(spriteSheet);

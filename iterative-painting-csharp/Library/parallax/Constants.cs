@@ -16,7 +16,6 @@ public class Constants
     public static readonly string TilesetFileName = "tileset.json";
     public static readonly string ManifestFileName = "tileset-manifest.json";
     
-    public static readonly int InvalidIndex = -1;
     public const int LatestSequenceNumber = -1;
     public const string AllTilesets = "AllTilesets";
 
