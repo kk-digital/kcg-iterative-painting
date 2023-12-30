@@ -12,6 +12,8 @@ __pycache__/
 /obj
 /bin
 
+/asset-cache
+
 # Distribution / packaging
 .Python
 build/
